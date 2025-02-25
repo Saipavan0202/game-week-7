@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Forest Car Racing</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #2ecc71; /* Forest floor green */
+        }
+        
+        #gameCanvas {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            background: 
+                linear-gradient(to bottom, #87CEEB 0%, #87CEEB 20%, #228B22 20%, #228B22 100%);
+            border: 2px solid #1a3c34;
+            overflow: hidden;
+        }
+
+        #car {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: red;
+            border-radius: 5px;
+        }
+
+        .tree {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: #1a3c34;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameCanvas">
+        <div id="car"></div>
+        <div id="score">Score: 0</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const car = document.getElementById('car');
+        const scoreDisplay = document.getElementById('score');
+        
+        let carPosition = 380; // Initial car position (center)
+        let score = 0;
+        let trees = [];
+        let gameSpeed = 5;
+        let gameOver = false;
+
+        // Car movement
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+            
+            if (e.key === 'ArrowLeft' && carPosition > 0) {
+                carPosition -= 20;
+            } else if (e.key === 'ArrowRight' && carPosition < 760) {
+                carPosition += 20;
+            }
+            car.style.left = carPosition + 'px';
+        });
+
+        // Create trees
+        function createTree() {
+            const tree = document.createElement('div');
+            tree.className = 'tree';
+            tree.style.left = Math.random() * 760 + 'px';
+            tree.style.top = '-60px';
+            canvas.appendChild(tree);
+            trees.push(tree);
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameOver) return;
+
+            // Move trees
+            trees.forEach((tree, index) => {
+                let treeTop = parseInt(tree.style.top) + gameSpeed;
+                tree.style.top = treeTop + 'px';
+
+                // Check collision
+                let carRect = car.getBoundingClientRect();
+                let treeRect = tree.getBoundingClientRect();
+                
+                if (carRect.left < treeRect.right &&
+                    carRect.right > treeRect.left &&
+                    carRect.top < treeRect.bottom &&
+                    carRect.bottom > treeRect.top) {
+                    gameOver = true;
+                    alert('Game Over! Score: ' + score);
+                }
+
+                // Remove trees that are off screen and increase score
+                if (treeTop > 600) {
+                    tree.remove();
+                    trees.splice(index, 1);
+                    score += 1;
+                    scoreDisplay.textContent = 'Score: ' + score;
+                }
+            });
+
+            // Spawn new trees
+            if (Math.random() < 0.02) {
+                createTree();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initial car position
+        car.style.left = carPosition + 'px';
+        car.style.top = '500px';
+
+        // Start the game
+        gameLoop();
+
+        // Spawn initial trees
+        setInterval(() => {
+            if (!gameOver && trees.length < 5) {
+                createTree();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
